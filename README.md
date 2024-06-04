@@ -35,3 +35,53 @@ This project aims to address the problem of inconsistent exercise routines by de
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+
+
+
+
+
+
+
+# Import Azure services
+from azure.ai.textanalytics import TextAnalyticsClient
+from azure.core.credentials import AzureKeyCredential
+from azure.ai.personalizer import PersonalizerClient
+from azure.ai.personalizer.models import RankableAction, PersonalizerRankRequest
+from azure.ai.textanalytics import TextAnalyticsClient
+from azure.core.credentials import AzureKeyCredential
+
+# Initialize Azure Personalizer client
+personalizer_endpoint = "YOUR_PERSONALIZER_ENDPOINT"
+personalizer_key = "YOUR_PERSONALIZER_KEY"
+personalizer_client = PersonalizerClient(personalizer_endpoint, AzureKeyCredential(personalizer_key))
+
+# Initialize Azure Text Analytics client
+text_analytics_endpoint = "YOUR_TEXT_ANALYTICS_ENDPOINT"
+text_analytics_key = "YOUR_TEXT_ANALYTICS_KEY"
+text_analytics_client = TextAnalyticsClient(text_analytics_endpoint, AzureKeyCredential(text_analytics_key))
+
+# Sample user input
+user_input = "I want to lose weight and improve my cardio."
+
+# Analyze user input using Text Analytics
+sentiment_analysis = text_analytics_client.analyze_sentiment([user_input])[0]
+user_sentiment = sentiment_analysis.sentiment
+
+# Define actions for Personalizer
+actions = [
+    RankableAction(id="workout1", features={"type": "cardio", "difficulty": "intermediate"}),
+    RankableAction(id="workout2", features={"type": "strength", "difficulty": "beginner"}),
+    RankableAction(id="workout3", features={"type": "flexibility", "difficulty": "easy"})
+]
+
+# Create a Personalizer request
+personalizer_request = PersonalizerRankRequest(actions=actions, context_features={"user_sentiment": user_sentiment})
+
+# Get personalized workout recommendation
+response = personalizer_client.rank(personalizer_request)
+recommended_workout = response.reward_action_id
+
+# Print recommended workout
+print("Recommended Workout:", recommended_workout)
+
